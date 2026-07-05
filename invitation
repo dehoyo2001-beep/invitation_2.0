@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Shower - Invitación Digital</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        /* --- VARIABLES DE DISEÑO (CSS) --- */
+        :root {
+            --rosa-pastel: #FFD1DC;
+            --lila-pastel: #E8D7F5;
+            --celeste-pastel: #E3F2FD;
+            --crema: #FFFDD0;
+            --beige-suave: #F5EBE6;
+            --dorado: #D4AF37;
+            --texto: #5D576B;
+            --blanco: #FFFFFF;
+            --fuente-titulo: 'Dancing Script', cursive;
+            --fuente-subtitulo: 'Quicksand', sans-serif;
+            --fuente-base: 'Poppins', sans-serif;
+        }
+
+        /* --- ESTILOS GENERALES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--fuente-base);
+            color: var(--texto);
+            background: linear-gradient(135deg, var(--bg-grad-1, #FFF5F5), var(--bg-grad-2, #F3E5F5));
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Ocultar scrollbar durante la portada */
+        body.bloqueado {
+            overflow: hidden;
+        }
+
+        .contenedor-premium {
+            max-width: 480px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0,0,0,0.05);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 40px;
+        }
+
+        /* Elementos flotantes de fondo */
+        .particula {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.6;
+            animation: flotar 6s ease-in-out infinite;
+        }
+
+        @keyframes flotar {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(15deg); }
+        }
+
+        /* --- PORTADA PRINCIPAL --- */
+        #portada {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #FFF0F5 0%, #E6E6FA 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            transition: transform 1s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        #portada.ocultar {
+            transform: translateY(-100%);
+        }
+
+        .ilustracion-portada {
+            font-size: 5rem;
+            color: var(--dorado);
+            margin-bottom: 20px;
+            animation: pulso Suave 3s infinite ease-in-out;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        @keyframes pulsoSuave {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .mensaje-bienvenida {
+            font-family: var(--fuente-titulo);
+            font-size: 2.2rem;
+            color: var(--texto);
+            margin-bottom: 30px;
+            padding: 0 10px;
+            line-height: 1.3;
+        }
+
+        .btn-abrir {
+            font-family: var(--fuente-subtitulo);
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--rosa-pastel), var(--lila-pastel));
+            border: 2px solid var(--blanco);
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            color: var(--texto);
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            animation: rebote 2s infinite;
+        }
+
+        .btn-abrir:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.12);
+            border-color: var(--dorado);
+        }
+
+        @keyframes rebote {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .contenido {
+            opacity: 0;
+            transition: opacity 1s ease;
+            padding: 20px;
+        }
+
+        .contenido.mostrar {
+            opacity: 1;
+        }
+
+        /* Tarjetas Premium */
+        .tarjeta-premium {
+            background: var(--blanco);
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(93, 87, 107, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tarjeta-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, var(--rosa-pastel), var(--lila-pastel), var(--celeste-pastel));
+        }
+
+        .nombre-bebe {
+            font-family: var(--fuente-titulo);
+            font-size: 3.5rem;
+            color: var(--texto);
+            margin: 10px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* --- REPRODUCTOR YOUTUBE --- */
+        .reproductor-musica {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .btn-audio {
+            background: var(--beige-suave);
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--texto);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .btn-audio:hover {
+            background: var(--lila-pastel);
+            color: white;
+        }
+
+        .icono-musical-animado {
+            animation: rotarMusica 3s linear infinite;
+            display: inline-block;
+        }
+
+        .icono-musical-animado.pausado {
+            animation-play-state: paused;
+        }
+
+        @keyframes rotarMusica {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .control-volumen {
+            accent-color: var(--dorado);
+            width: 80px;
+            cursor: pointer;
+        }
+
+        /* Contenedor del Iframe oculto de YouTube */
+        #yt-player-oculto {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- CONTADOR REGRESIVO --- */
+        .contador-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .cuenta-bloque {
+            background: linear-gradient(135deg, #FFF9FA, #FAF5FF);
+            padding: 12px 5px;
+            border-radius: 15px;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .cuenta-numero {
+            font-family: var(--fuente-subtitulo);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--texto);
+            display: block;
+        }
+
+        .cuenta-etiqueta {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9A95A5;
+        }
+
+        /* --- CALENDARIO INTERACTIVO --- */
+        .calendario-header {
+            font-family: var(--fuente-subtitulo);
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: capitalize;
+            color: var(--texto);
+        }
+
+        .dias-semana {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            color: #A09AA9;
+        }
+
+        .calendario-dias {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .dia {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            border-radius: 50%;
+            color: #6C757D;
+            position: relative;
+        }
+
+        .dia.vacio { pointer-events: none; }
+
+        /* Estilo especial del día del Evento */
+        .dia.evento {
+            background-color: var(--rosa-pastel);
+            color: var(--texto);
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255, 209, 220, 0.8);
+            animation: pulsoEvento 2s infinite ease-in-out;
+        }
+
+        .dia.evento::after {
+            content: '🧸';
+            position: absolute;
+            top: -10px;
+            right: -6px;
+            font-size: 0.85rem;
+        }
+
+        .dia.evento::before {
+            content: 'Baby Shower';
+            position: absolute;
+            bottom: -15px;
+            font-size: 0.55rem;
+            white-space: nowrap;
+            color: var(--texto);
+            font-weight: 600;
+        }
+
+        @keyframes pulsoEvento {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(255, 209, 220, 0.8); }
+            50% { transform: scale(1.1); box-shadow: 0 0 18px rgba(212, 175, 55, 0.6); }
+        }
+
+        /* --- DETALLES E INFO --- */
+        .info-item {
+            margin: 18px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-align: left;
+            padding: 10px;
+            border-radius: 12px;
+            transition: background 0.3s;
+        }
+
+        .info-item:hover { background-color: #FAF9F6; }
+
+        .info-item i {
+            font-size: 1.4rem;
+            color: var(--dorado);
+            width: 30px;
+            text-align: center;
+        }
+
+        .info-texto h4 {
+            font-family: var(--fuente-subtitulo);
+            font-size: 0.95rem;
+            color: #9A95A5;
+        }
+
+        .info-texto p {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        /* --- MAPA --- */
+        #mapa {
+            height: 220px;
+            border-radius: 16px;
+            margin: 15px 0;
+            z-index: 10;
+        }
+
+        /* --- BOTONES PREMIUM --- */
+        .btn-premium {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: var(--fuente-subtitulo);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 6px 15px rgba(37, 211, 102, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-premium.mapa-btn {
+            background: linear-gradient(45deg, var(--lila-pastel), var(--celeste-pastel));
+            color: var(--texto);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.04);
+            margin-top: 10px;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* --- GALERÍA EN CUADRÍCULA --- */
+        .galeria-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .galeria-item {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: transform 0.4s, box-shadow 0.4s;
+            cursor: pointer;
+        }
+
+        .galeria-item:hover {
+            transform: scale(1.04) rotate(2deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        /* --- FOOTER --- */
+        .footer-mensaje {
+            font-family: var(--fuente-titulo);
+            font-size: 1.8rem;
+            line-height: 1.4;
+            color: var(--texto);
+            padding: 10px;
+        }
+
+        /* --- ANIMACIÓN SCROLL EFECTS --- */
+        .revelar {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .revelar.activo {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- EFECTO CONFETI / CANVAS --- */
+        #canvas-animaciones {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body class="bloqueado">
+
+    <canvas id="canvas-animaciones"></canvas>
+
+    <div id="yt-player-oculto"></div>
+
+    <section id="portada">
+        <div class="ilustracion-portada">
+            <i class="fa-solid fa-baby-carriage"></i>
+        </div>
+        <h1 class="mensaje-bienvenida" id="txt-bienvenida"></h1>
+        <button class="btn-abrir" onclick="entrarInvitacion()">
+            <i class="fa-solid fa-heart-pulse"></i> Abrir Invitación
+        </button>
+    </section>
+
+    <main class="contenedor-premium">
+        
+        <span class="particula" style="top:10%; left:5%; font-size:1.5rem;">🧸</span>
+        <span class="particula" style="top:25%; right:8%; font-size:1.8rem; animation-delay: 1s;">☁️</span>
+        <span class="particula" style="top:45%; left:8%; font-size:1.3rem; animation-delay: 2s;">⭐</span>
+        <span class="particula" style="top:70%; right:6%; font-size:1.6rem; animation-delay: 3s;">🍼</span>
+
+        <div class="contenido" id="contenido-invitacion">
+            
+            <section class="tarjeta-premium revelar">
+                <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem; font-weight:600;">Baby Shower de</p>
+                <h2 class="nombre-bebe" id="lbl-nombre-bebe"></h2>
+                
+                <div class="reproductor-musica">
+                    <button class="btn-audio" id="btn-play-pause" onclick="alternarMusica()">
+                        <i class="fa-solid fa-pause" id="icono-play-pause"></i>
+                    </button>
+                    <i class="fa-solid fa-music icono-musical-animado" id="nota-musical"></i>
+                    <input type="range" class="control-volumen" min="0" max="100" value="50" oninput="cambiarVolumen(this.value)">
+                </div>
+            </section>
+
+            <section class="tarjeta-premium revelar">
+                <h3 style="font-family: var(--fuente-subtitulo); margin-bottom: 12px; font-weight:700;">Faltan muy pocos días</h3>
+                <div class="contador-grid">
+                    <div class="cuenta-bloque"><span class="cuenta-numero" id="c-dias">00</span><span class="cuenta-etiqueta">Días</span></div>
+                    <div class="cuenta-bloque"><span class="cuenta-numero" id="c-horas">00</span><span class="cuenta-etiqueta">Horas</span></div>
+                    <div class="cuenta-bloque"><span class="cuenta-numero" id="c-min">00</span><span class="cuenta-etiqueta">Min</span></div>
+                    <div class="cuenta-bloque"><span class="cuenta-numero" id="c-seg">00</span><span class="cuenta-etiqueta">Seg</span></div>
+                </div>
+            </section>
+
+            <section class="tarjeta-premium revelar">
+                <div class="calendario-header" id="calendario-mes-ano"></div>
+                <div class="dias-semana">
+                    <div>Do</div><div>Lu</div><div>Ma</div><div>Mi</div><div>Ju</div><div>Vi</div><div>Sá</div>
+                </div>
+                <div class="calendario-dias" id="cuadricula-dias"></div>
+            </section>
+
+            <section class="tarjeta-premium revelar">
+                <h3 style="font-family: var(--fuente-subtitulo); font-weight:700; margin-bottom: 10px;">Detalles Especiales</h3>
+                
+                <div class="info-item">
+                    <i class="fa-solid fa-calendar-heart"></i>
+                    <div class="info-texto">
+                        <h4>Fecha</h4>
+                        <p id="det-fecha"></p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <i class="fa-solid fa-clock"></i>
+                    <div class="info-texto">
+                        <h4>Hora</h4>
+                        <p id="det-hora"></p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div class="info-texto">
+                        <h4>Dirección</h4>
+                        <p id="det-direccion"></p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <i class="fa-solid fa-shirt"></i>
+                    <div class="info-texto">
+                        <h4>Código de Vestimenta</h4>
+                        <p id="det-dresscode"></p>
+                    </div>
+                </div>
+                
+                <p style="margin-top:15px; font-style: italic; font-size:0.95rem; color:#7D768D;" id="det-mensaje-especial"></p>
+            </section>
+
+            <section class="tarjeta-premium revelar">
+                <h3 style="font-family: var(--fuente-subtitulo); font-weight:700; margin-bottom: 5px;">¿Cómo llegar?</h3>
+                <p style="font-size:0.85rem; color:#9A95A5; margin-bottom:12px;">Presiona el mapa o el botón para abrir navegación GPS</p>
+                <div id="mapa"></div>
+                <button class="btn-premium mapa-btn" id="btn-gps-externo">
+                    <i class="fa-solid fa-map-location-dot"></i> Abrir en Google Maps
+                </button>
+            </section>
+
+            <section class="tarjeta-premium revelar">
+                <h3 style="font-family: var(--fuente-subtitulo); font-weight:700; margin-bottom: 12px;">Dulce Espera</h3>
+                <div class="galeria-grid">
+                    <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=300&auto=format&fit=crop" class="galeria-item" alt="Baby shower pic 1">
+                    <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=300&auto=format&fit=crop" class="galeria-item" alt="Baby shower pic 2">
+                    <img src="https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=300&auto=format&fit=crop" class="galeria-item" alt="Baby shower pic 3">
+                    <img src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?q=80&w=300&auto=format&fit=crop" class="galeria-item" alt="Baby shower pic 4">
+                </div>
+            </section>
+
+            <section class="tarjeta-premium revelar">
+                <h3 style="font-family: var(--fuente-subtitulo); font-weight:700; margin-bottom: 8px;">¿Nos acompañas?</h3>
+                <p style="font-size:0.9rem; color:#7D768D; margin-bottom:18px;">Por favor, confírmanos tu asistencia antes del evento.</p>
+                <a href="#" class="btn-premium" id="btn-wsp-confirmar" target="_blank">
+                    <i class="fa-brands fa-whatsapp"></i> Confirmar Asistencia por WhatsApp
+                </a>
+            </section>
+
+            <footer style="text-align: center; margin-top: 30px;" class="revelar">
+                <p class="footer-mensaje" id="lbl-footer-mensaje"></p>
+                <div style="font-size: 1.2rem; color: var(--dorado); margin-top: 10px;">✨ ☁️ ✨</div>
+            </footer>
+
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        /* ==========================================================================
+           --- PANEL DE CONFIGURACIÓN DE TU EVENTO (FÁCIL DE MODIFICAR) ---
+           ========================================================================== */
+        const CONFIG = {
+            nombreBebe: "Emma Sofia",
+            // IMPORTANTE: Usa el formato "AAAA-MM-DD" para que el calendario calcule correctamente el mes
+            fechaEvento: "2026-08-15", 
+            horaEvento: "04:00 PM",
+            direccion: "Calle Falsa 123, Barrio Dulces Sueños",
+            dressCode: "Pastel Elegante (Blanco, Rosas y Celestes)",
+            mensajeEspecial: "🧁 ¡Tendremos mesa de postres y muchas sorpresas!",
+            telefonoWhatsApp: "573000000000", // Código de país + número (Sin el signo +)
+            mensajeWhatsApp: "¡Hola! Confirmo con mucha alegría mi asistencia al Baby Shower de la pequeña princesa Emma Sofia. 👶✨",
+            
+            // --- CANCIÓN DE YOUTUBE ---
+            // Solo debes colocar el ID de la canción de YouTube. 
+            // Ejemplo: Si el enlace es https://www.youtube.com/watch?v=kJQP7kiw5Fk el ID es "kJQP7kiw5Fk"
+            idVideoYoutube: "kJQP7kiw5Fk", 
+
+            // --- COORDENADAS MAPA ---
+            latitud: 9.3045,  
+            longitud: -75.3978, 
+            
+            // --- PALETA DE FONDO (Opcional por si deseas ajustar los degradados generales) ---
+            bgGradiente1: "#FFF0F5", // Fondo arriba (Lavanda blanda)
+            bgGradiente2: "#EBF3FE", // Fondo abajo (Celeste cielo)
+
+            mensajeBienvenida: "Con mucha alegría queremos compartir contigo la espera de nuestra pequeña princesa.",
+            mensajeFooter: "Gracias por acompañarnos en este momento tan especial. Tu presencia hará este día aún más inolvidable."
+        };
+
+        /* ==========================================================================
+           --- CONTROLADORES DE INFRAESTRUCTURA Y LOGICA ---
+           ========================================================================== */
+        
+        let playerYT; 
+
+        // Inyectar variables de configuración en el DOM nada más cargar la página
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('txt-bienvenida').innerText = CONFIG.mensajeBienvenida;
+            document.getElementById('lbl-nombre-bebe').innerText = CONFIG.nombreBebe;
+            document.getElementById('det-fecha').innerText = formatearFechaLegible(CONFIG.fechaEvento);
+            document.getElementById('det-hora').innerText = CONFIG.horaEvento;
+            document.getElementById('det-direccion').innerText = CONFIG.direccion;
+            document.getElementById('det-dresscode').innerText = CONFIG.dressCode;
+            document.getElementById('det-mensaje-especial').innerText = CONFIG.mensajeEspecial;
+            document.getElementById('lbl-footer-mensaje').innerText = CONFIG.mensajeFooter;
+
+            document.documentElement.style.setProperty('--bg-grad-1', CONFIG.bgGradiente1);
+            document.documentElement.style.setProperty('--bg-grad-2', CONFIG.bgGradiente2);
+
+            // Generar enlace de confirmación por WhatsApp seguro
+            document.getElementById('btn-wsp-confirmar').href = `https://wa.me/${CONFIG.telefonoWhatsApp}?text=${encodeURIComponent(CONFIG.mensajeWhatsApp)}`;
+            
+            // Configurar botón externo de Google Maps
+            document.getElementById('btn-gps-externo').onclick = () => {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${CONFIG.latitud},${CONFIG.longitud}`, '_blank');
+            };
+
+            inicializarContador();
+            inicializarCalendario();
+        });
+
+        // Carga asíncrona de la API de Iframe de YouTube
+        let tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        let firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // Se ejecuta automáticamente al descargar la API de YouTube
+        function onYouTubeIframeAPIReady() {
+            playerYT = new YT.Player('yt-player-oculto', {
+                height: '0',
+                width: '0',
+                videoId: CONFIG.idVideoYoutube,
+                playerVars: {
+                    'autoplay': 0,
+                    'controls': 0,
+                    'loop': 1,
+                    'playlist': CONFIG.idVideoYoutube // Necesario para bucle en Iframe
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Fijamos volumen intermedio inicial
+            event.target.setVolume(50);
+        }
+
+        // CONTROL DEL AUDIO
+        function alternarMusica() {
+            if (!playerYT) return;
+            const estado = playerYT.getPlayerState();
+            const icono = document.getElementById('icono-play-pause');
+            const nota = document.getElementById('nota-musical');
+
+            if (estado === YT.PlayerState.PLAYING) {
+                playerYT.pauseVideo();
+                icono.className = "fa-solid fa-play";
+                nota.classList.add('pausado');
+            } else {
+                playerYT.playVideo();
+                icono.className = "fa-solid fa-pause";
+                nota.classList.remove('pausado');
+            }
+        }
+
+        function cambiarVolumen(valor) {
+            if (playerYT && playerYT.setVolume) {
+                playerYT.setVolume(valor);
+            }
+        }
+
+        // TRANSICIÓN DE APERTURA
+        function entrarInvitacion() {
+            document.body.classList.remove('bloqueado');
+            document.getElementById('portada').classList.add('ocultar');
+            document.getElementById('contenido-invitacion').classList.add('mostrar');
+            
+            // Iniciar música automáticamente gracias a la interacción previa del clic
+            if (playerYT && playerYT.playVideo) {
+                playerYT.playVideo();
+            }
+
+            // Inicializar mapa de Leaflet una vez que el contenedor es visible para evitar fallos de renderizado
+            setTimeout(() => {
+                const map = L.map('mapa').setView([CONFIG.latitud, CONFIG.longitud], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+
+                let iconoBebe = L.divIcon({
+                    html: '<div style="font-size:2rem; transform:translate(-10px,-10px)">👶</div>',
+                    className: 'icono-custom-mapa'
+                });
+
+                L.marker([CONFIG.latitud, CONFIG.longitud], {icon: iconoBebe})
+                 .addTo(map)
+                 .bindPopup(`<b>Baby Shower de ${CONFIG.nombreBebe}</b><br>¡Te esperamos aquí!`)
+                 .openPopup();
+            }, 400);
+
+            iniciarAnimacionesParticulas();
+        }
+
+        // CONTADOR REGRESIVO
+        function inicializarContador() {
+            const fechaObjetivo = new Date(`${CONFIG.fechaEvento}T00:00:00`).getTime();
+
+            const intervalo = setInterval(() => {
+                const ahora = new Date().getTime();
+                const distancia = fechaObjetivo - ahora;
+
+                if (distancia < 0) {
+                    clearInterval(intervalo);
+                    document.querySelector('.contador-grid').innerHTML = "<p style='grid-column: span 4; font-weight:bold; color:var(--dorado);'>¡Llegó el día esperado! 🎉</p>";
+                    return;
+                }
+
+                const dias = Math.floor(distancia / (1000 * 60 * 60 * 24));
+                const horas = Math.floor((distancia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutos = Math.floor((distancia % (1000 * 60 * 60)) / (1000 * 60));
+                const segundos = Math.floor((distancia % (1000 * 60)) / 1000);
+
+                document.getElementById('c-dias').innerText = dias.toString().padStart(2, '0');
+                document.getElementById('c-horas').innerText = horas.toString().padStart(2, '0');
+                document.getElementById('c-min').innerText = minutos.toString().padStart(2, '0');
+                document.getElementById('c-seg').innerText = segundos.toString().padStart(2, '0');
+            }, 1000);
+        }
+
+        // GENERADOR DE CALENDARIO DINÁMICO
+        function inicializarCalendario() {
+            const dateObj = new Date(`${CONFIG.fechaEvento}T00:00:00`);
+            const año = dateObj.getFullYear();
+            const mes = dateObj.getMonth(); 
+            const diaEvento = dateObj.getDate();
+
+            const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            document.getElementById('calendario-mes-ano').innerText = `${nombresMeses[mes]} ${año}`;
+
+            const primerDiaIndex = new Date(año, mes, 1).getDay();
+            const ultimoDia = new Date(año, mes + 1, 0).getDate();
+
+            const cuadricula = document.getElementById('cuadricula-dias');
+
+            // Espacios vacíos para ajustar el inicio de semana
+            for (let i = 0; i < primerDiaIndex; i++) {
+                const vacio = document.createElement('div');
+                vacio.className = "dia vacio";
+                cuadricula.appendChild(vacio);
+            }
+
+            // Días numéricos reales del mes
+            for (let d = 1; d <= ultimoDia; d++) {
+                const diaElemento = document.createElement('div');
+                diaElemento.className = "dia";
+                diaElemento.innerText = d;
+
+                if (d === diaEvento) {
+                    diaElemento.classList.add('evento');
+                    diaElemento.onclick = () => {
+                        alert("¡Ese es el gran día! Te esperamos con los brazos abiertos. 💕🧸");
+                    };
+                }
+                cuadricula.appendChild(diaElemento);
+            }
+        }
+
+        // FUNCIONES AUXILIARES
+        function formatearFechaLegible(fechaStr) {
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
+            const fecha = new Date(`${fechaStr}T00:00:00`);
+            return fecha.toLocaleDateString('es-ES', opciones);
+        }
+
+        // ANIMACIÓN AL HACER SCROLL (Aparición elegante de tarjetas)
+        const elementosRevelar = document.querySelectorAll('.revelar');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('activo');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        elementosRevelar.forEach(el => observer.observe(el));
+
+        // INTERFAZ DE ANIMACIÓN DE FONDO CON CANVAS (Estrellas, Corazones y Confeti Suave)
+        function iniciarAnimacionesParticulas() {
+            const canvas = document.getElementById('canvas-animaciones');
+            const ctx = canvas.getContext('2d');
+
+            let ancho = canvas.width = window.innerWidth;
+            let alto = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                ancho = canvas.width = window.innerWidth;
+                alto = canvas.height = window.innerHeight;
+            });
+
+            const tiposParticulas = ['❤️', '✨', '🎈', '🌸', '⭐'];
+            class ParticulaEfecto {
+                constructor() {
+                    this.x = Math.random() * ancho;
+                    this.y = alto + Math.random() * 100;
+                    this.velocidadY = -(Math.random() * 1.5 + 0.5);
+                    this.velocidadX = Math.sin(Math.random() * 2) * 0.5;
+                    this.simbolo = tiposParticulas[Math.floor(Math.random() * tiposParticulas.length)];
+                    this.size = Math.random() * 14 + 12;
+                    this.opacidad = Math.random() * 0.5 + 0.3;
+                }
+                update() {
+                    this.y += this.velocidadY;
+                    this.x += this.velocidadX;
+                    if (this.y < -20) {
+                        this.y = alto + 20;
+                        this.x = Math.random() * ancho;
+                    }
+                }
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.opacidad;
+                    ctx.font = `${this.size}px Arial`;
+                    ctx.fillText(this.simbolo, this.x, this.y);
+                    ctx.restore();
+                }
+            }
+
+            const grupoParticulas = [];
+            for (let p = 0; p < 25; p++) {
+                grupoParticulas.push(new ParticulaEfecto());
+            }
+
+            function loopAnimacion() {
+                ctx.clearRect(0, 0, ancho, alto);
+                grupoParticulas.forEach(particula => {
+                    particula.update();
+                    particula.draw();
+                });
+                requestAnimationFrame(loopAnimacion);
+            }
+            loopAnimacion();
+        }
+    </script>
+</body>
+</html>
